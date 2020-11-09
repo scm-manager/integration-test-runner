@@ -32,3 +32,6 @@ rebel.xml
 
 # vagrant
 .vagrant
+
+# tests
+./e2e-tests
