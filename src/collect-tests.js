@@ -1,10 +1,12 @@
 'use strict';
 
 const { ensureDir, emptyDir, mkdtemp, remove, move, pathExists, readdir, stat } = require('fs-extra');
+const { readFileSync } = require('fs');
 const {spawn} = require('child_process');
 const { organization } = require('./config');
 const { join } = require('path');
 const { tmpdir } = require('os');
+const {parseStringPromise} = require('xml2js');
 const logger = require("./logger");
 
 /**
@@ -15,7 +17,7 @@ const logger = require("./logger");
  *
  * @see https://stackoverflow.com/a/52269934
  */
-async function collectTests(api, repository, versions, outPath) {
+async function collectTests(api, repository, versions, outPath, relativeTestsDir = 'e2e-tests/') {
   if (!versions.length) {
     logger.info(`Skipping ${repository}: no versions found`)
     return;
@@ -31,13 +33,14 @@ async function collectTests(api, repository, versions, outPath) {
     const git = createGit(tmpClonePath);
 
     await git(`clone`, `--no-checkout`, cloneUrl, `.`);
-    await git(`sparse-checkout`, `set`, `--cone`, `e2e-tests/`);
+    await git(`sparse-checkout`, `set`, `--cone`, "pom.xml", relativeTestsDir);
     await git(`reset`, `--hard`, `HEAD`);
 
     logger.debug(`Collecting e2e tests for ${repository} ...`)
     for (const { version, sha } of versions) {
-      await collectTestFiles(tmpClonePath, version, sha, outPath);
+      await collectVersionTestFiles(tmpClonePath, version, sha, outPath, relativeTestsDir);
     }
+    await collectDevelopTestFiles(tmpClonePath, outPath, relativeTestsDir);
   } finally {
     logger.trace(`Removing temporary working directory: ${tmpClonePath} ...`)
     await remove(tmpClonePath);
@@ -79,13 +82,13 @@ function createCloneURL(repository) {
   return `https://${auth}github.com/${organization}/${repository}`;
 }
 
-async function collectTestFiles(tmpDir, version, sha, outPath) {
+async function collectVersionTestFiles(tmpDir, version, sha, outPath, relativeTestsDir) {
   logger.debug(`Checking out ${version} (${sha}) ...`)
   const git = createGit(tmpDir);
   await git(`checkout`, `-f`, sha);
 
   const versionPath = join(outPath, version);
-  const testsPath = join(tmpDir, 'e2e-tests');
+  const testsPath = join(tmpDir, relativeTestsDir);
 
   if (await pathExists(testsPath)) {
     logger.debug(`Collecting contents of e2e-tests folder for version ${version} ...`);
@@ -97,6 +100,32 @@ async function collectTestFiles(tmpDir, version, sha, outPath) {
     logger.debug(`Content collected for ${version} and moved to ${outPath}`);
   } else {
     logger.debug(`No e2e-tests folder in version ${version}, skipping ...`)
+  }
+}
+
+async function collectDevelopTestFiles(tmpDir, outPath, relativeTestsDir) {
+  logger.debug(`Checking out develop ...`)
+  const git = createGit(tmpDir);
+  await git(`checkout`, `develop`);
+
+  const pomXml = readFileSync(join(tmpDir, 'pom.xml'));
+  const pomJson = await parseStringPromise(pomXml);
+  const [pomVersion] = pomJson.project.version;
+  logger.debug(pomVersion);
+
+  const versionPath = join(outPath, pomVersion);
+  const testsPath = join(tmpDir, relativeTestsDir);
+
+  if (await pathExists(testsPath)) {
+    logger.debug(`Collecting contents of e2e-tests folder for version ${pomVersion} ...`);
+    await ensureDir(versionPath);
+    await emptyDir(versionPath);
+
+    logger.debug(`Move content from ${testsPath} to ${versionPath} ...`);
+    await moveDirContents(versionPath, testsPath);
+    logger.debug(`Content collected for ${pomVersion} and moved to ${outPath}`);
+  } else {
+    logger.debug(`No e2e-tests folder in version ${pomVersion}, skipping ...`)
   }
 }
 
@@ -139,16 +168,14 @@ async function moveDirContents(to, dirRoot, path = []) {
   if (!(await pathExists(currentDir))) {
     return;
   }
-  const outDir = join(to, ...path);
   const files = await readdir(currentDir);
-  await ensureDir(outDir);
   for (const file of files) {
     const filePath = join(currentDir, file);
     const fstat = await stat(filePath);
     if (fstat.isDirectory()) {
       await moveDirContents(to, dirRoot, [...path, file]);
-    } else if (fstat.isFile()) {
-      await moveFileIfExsists(currentDir, outDir, file);
+    } else if (fstat.isFile() && file.match(/^.+\.spec\.(js|ts)$/g)) {
+      await moveFileIfExsists(currentDir, to, file);
     }
   }
 }

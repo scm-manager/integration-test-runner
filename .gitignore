@@ -34,4 +34,5 @@ rebel.xml
 .vagrant
 
 # tests
-./e2e-tests
+e2e-tests
+cypress
