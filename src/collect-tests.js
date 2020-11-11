@@ -37,10 +37,11 @@ async function collectTests(api, repository, versions, outPath, relativeTestsDir
     await git(`reset`, `--hard`, `HEAD`);
 
     logger.debug(`Collecting e2e tests for ${repository} ...`)
+    const fileFilter = file => file.match(/^.+\.(spec|feature)\.(js|ts)$/g) || file.match(repository + '\.js');
     for (const { version, sha } of versions) {
-      await collectVersionTestFiles(tmpClonePath, version, sha, outPath, relativeTestsDir);
+      await collectVersionTestFiles(tmpClonePath, version, sha, outPath, relativeTestsDir, fileFilter);
     }
-    await collectDevelopTestFiles(tmpClonePath, outPath, relativeTestsDir);
+    await collectDevelopTestFiles(tmpClonePath, outPath, relativeTestsDir, fileFilter);
   } finally {
     logger.trace(`Removing temporary working directory: ${tmpClonePath} ...`)
     await remove(tmpClonePath);
@@ -82,7 +83,7 @@ function createCloneURL(repository) {
   return `https://${auth}github.com/${organization}/${repository}`;
 }
 
-async function collectVersionTestFiles(tmpDir, version, sha, outPath, relativeTestsDir) {
+async function collectVersionTestFiles(tmpDir, version, sha, outPath, relativeTestsDir, fileFilter) {
   logger.debug(`Checking out ${version} (${sha}) ...`)
   const git = createGit(tmpDir);
   await git(`checkout`, `-f`, sha);
@@ -96,14 +97,14 @@ async function collectVersionTestFiles(tmpDir, version, sha, outPath, relativeTe
     await emptyDir(versionPath);
 
     logger.debug(`Move content from ${testsPath} to ${versionPath} ...`);
-    await moveDirContents(versionPath, testsPath);
+    await moveDirContents(versionPath, testsPath, fileFilter);
     logger.debug(`Content collected for ${version} and moved to ${outPath}`);
   } else {
     logger.debug(`No e2e-tests folder in version ${version}, skipping ...`)
   }
 }
 
-async function collectDevelopTestFiles(tmpDir, outPath, relativeTestsDir) {
+async function collectDevelopTestFiles(tmpDir, outPath, relativeTestsDir, fileFilter) {
   logger.debug(`Checking out develop ...`)
   const git = createGit(tmpDir);
   await git(`checkout`, `develop`);
@@ -122,7 +123,7 @@ async function collectDevelopTestFiles(tmpDir, outPath, relativeTestsDir) {
     await emptyDir(versionPath);
 
     logger.debug(`Move content from ${testsPath} to ${versionPath} ...`);
-    await moveDirContents(versionPath, testsPath);
+    await moveDirContents(versionPath, testsPath, fileFilter);
     logger.debug(`Content collected for ${pomVersion} and moved to ${outPath}`);
   } else {
     logger.debug(`No e2e-tests folder in version ${pomVersion}, skipping ...`)
@@ -159,11 +160,12 @@ async function moveIfExsists(from, to) {
 /**
  * @param {string} to
  * @param {string} dirRoot
+ * @param {function} filter
  * @param {string[]} path
  *
  * @returns {Promise<void>}
  */
-async function moveDirContents(to, dirRoot, path = []) {
+async function moveDirContents(to, dirRoot, filter, path = []) {
   const currentDir = join(dirRoot, ...path);
   if (!(await pathExists(currentDir))) {
     return;
@@ -173,8 +175,8 @@ async function moveDirContents(to, dirRoot, path = []) {
     const filePath = join(currentDir, file);
     const fstat = await stat(filePath);
     if (fstat.isDirectory()) {
-      await moveDirContents(to, dirRoot, [...path, file]);
-    } else if (fstat.isFile() && file.match(/^.+\.spec\.(js|ts)$/g)) {
+      await moveDirContents(to, dirRoot, filter, [...path, file]);
+    } else if (fstat.isFile() && filter(file)) {
       await moveFileIfExsists(currentDir, to, file);
     }
   }

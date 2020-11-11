@@ -1,26 +1,33 @@
 {
-  "name": "integration-test-runner",
+  "name": "@scm-manager/integration-test-runner",
   "version": "1.0.0",
   "description": "Cli application for running integration tests",
-  "main": "index.js",
+  "main": "cli.js",
   "repository": "git@github.com:scm-manager/integration-test-runner.git",
   "author": "Konstantin Schaper <konstantin.schaper@cloudogu.com>",
   "license": "MIT",
   "private": false,
+  "bin": {
+    "integration-test-runner": "./cli.js"
+  },
   "dependencies": {
+    "@cypress/browserify-preprocessor": "^3.0.1",
     "@ffmpeg-installer/ffmpeg": "^1.0.20",
     "@octokit/rest": "^18.0.9",
     "@types/cypress": "^1.1.3",
     "adm-zip": "^0.4.16",
     "axios": "^0.21.0",
     "cypress": "^4.12.0",
+    "cypress-cucumber-preprocessor": "^4.0.0",
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^9.0.1",
     "pino": "^6.7.0",
     "pino-pretty": "^4.3.0",
     "semver": "^7.3.2",
+    "typescript": "^4.0.5",
     "xml2js": "^0.4.23",
-    "yargs": "^16.1.0"
+    "yargs": "^16.1.0",
+    "resolve": "^1.19.0"
   },
   "devDependencies": {
     "@types/node": "^14.14.6",
