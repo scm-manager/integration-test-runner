@@ -20,13 +20,18 @@ exports.builder = {
         alias: 'p',
         type: 'string',
         description: "scm-manager account password"
+    },
+    open: {
+        alias: 'o',
+        type: 'boolean',
+        description: "open cypress instead of just running it"
     }
 };
 exports.handler = async argv => {
     const logger = require('../src/logger');
 
     logger.info("Running cypress ...");
-    cypress.run({
+    cypress[argv.open ? "open" : "run"]({
         config: {
             baseUrl: argv.url,
             videoUploadOnPasses: false,
@@ -40,7 +45,7 @@ exports.handler = async argv => {
             mochaFile: "target/cypress-reports/TEST-[hash].xml"
         },
         reporter: "junit",
-        testFiles: "**/*.feature"
+        testFiles: "**/*.{feature,features}"
     })
         .then(results => {
             results.runs.forEach(run => {
