@@ -47,7 +47,7 @@ exports.handler = async argv => {
     const coreReleases = await collectReleases(api, "scm-manager");
 
     logger.info("Collecting core tests ...");
-    await collectTests(api, "scm-manager", coreReleases, join(outDir, "scm-manager"), "scm-ui/e2e-tests/");
+    await collectTests(api, "scm-manager", coreReleases, join(outDir, "scm-manager"), "scm-ui/e2e-tests/cypress");
 
     logger.info("Collecting plugin repositories ...");
     const repositories = await collectPlugins(api);

@@ -25,6 +25,11 @@ exports.builder = {
         alias: 'o',
         type: 'boolean',
         description: "open cypress instead of just running it"
+    },
+    directory: {
+        alias: 'd',
+        type: 'string',
+        description: "the relative directory cypress is in"
     }
 };
 exports.handler = async argv => {
@@ -45,7 +50,8 @@ exports.handler = async argv => {
             mochaFile: "target/cypress-reports/TEST-[hash].xml"
         },
         reporter: "junit",
-        testFiles: "**/*.{feature,features}"
+        testFiles: "**/*.{feature,features}",
+        project: argv.directory || "."
     })
         .then(results => {
             results.runs.forEach(run => {

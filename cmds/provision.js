@@ -1,9 +1,10 @@
 const {join} = require('path');
 const axios = require('axios').default;
-const {copySync, ensureDir} = require('fs-extra');
+const {copySync, ensureDir, pathExists, emptyDir} = require('fs-extra');
 const {writeFileSync} = require('fs');
 const {EOL} = require('os');
 const {forEachFileInDirectoryRecursive} = require('../src/foreach-file-in-directory-recursive');
+const {copyDirContents} = require('../src/copy-dir-contents');
 
 exports.command = "provision";
 exports.describe = "runs the provided test suite against a given scm-manager instance";
@@ -61,28 +62,51 @@ exports.handler = async argv => {
     testsToRun.push({name: 'scm-manager', version: coreVersion});
 
     logger.info("Collecting tests to run ...");
-    const testsOutDir = join(__dirname, '..', 'cypress', "integration");
-    const commandsOutDir = join(__dirname, '..', 'cypress', 'support');
-    const supportIndexFilePath = join(commandsOutDir, 'index.js');
+    const outRootDir = join(__dirname, '..', 'cypress');
+    const featuresOutRootDir = join(outRootDir, "integration");
+    const supportOutRootDir = join(__dirname, '..', 'cypress', 'support');
+    const stepsOutRootDir = join(supportOutRootDir, "step_definitions");
+    const supportIndexFilePath = join(supportOutRootDir, 'index.js');
     let supportIndexJs = `import "../../commands";`;
-    await ensureDir(testsOutDir);
+    await emptyDir(outRootDir);
+    await ensureDir(featuresOutRootDir);
+    await ensureDir(supportOutRootDir);
+    await ensureDir(stepsOutRootDir);
     for (const {name, version} of testsToRun) {
-        const testsInDir = join(__dirname, '..', 'e2e-tests', name, version);
-        await forEachFileInDirectoryRecursive(testsInDir, path => {
-            const fileIn = join(testsInDir, ...path);
-            const fileName = path.pop();
-            if (fileName.match(/^.+\.(spec|feature)\.(js|ts)$/g)) {
-                const testOut = join(testsOutDir, fileName);
-                logger.debug(`Copying test from ${fileIn} to ${testOut}`)
-                copySync(fileIn, testOut);
-            } else if (fileName.match(name + '\.js')) {
-                const commandOut = join(commandsOutDir, fileName);
+        const rootInDir = join(__dirname, '..', 'e2e-tests', name, version);
+
+        // Collect Features
+        const featuresInDir = join(rootInDir, "features");
+        const featuresOutDir = join(featuresOutRootDir, name, version);
+        await copyDirContents(featuresOutDir, featuresInDir, file => file.match(/^.+\.(feature|features)$/));
+
+        // Collect Steps
+        const stepsInDir = join(rootInDir, "steps");
+        const stepsOutDir = join(stepsOutRootDir, name, version);
+        await copyDirContents(stepsOutDir, stepsInDir);
+
+        // Collect Commands
+        const commandsInDir = join(rootInDir, "commands");
+        if (await pathExists(commandsInDir)) {
+            const commandsOutRootDir = join(supportOutRootDir, name);
+            await forEachFileInDirectoryRecursive(commandsInDir, path => {
+                const fileIn = join(commandsInDir, ...path);
+                const fileName = path.pop();
+                const commandOut = join(commandsOutRootDir, fileName);
                 logger.debug(`Copying command from ${fileIn} to ${commandOut}`);
                 copySync(fileIn, commandOut);
-                supportIndexJs += `${EOL}import "./${fileName}";`;
-            }
-
-        });
+            });
+            // Add import to support file which loads the commands, the plugin requires an "index" file for its commands to work
+            supportIndexJs += `${EOL}import "./${name}";`;
+        }
     }
     writeFileSync(supportIndexFilePath, supportIndexJs);
+
+    // Check plugins file
+    const pluginsRootPath = join(outRootDir, "plugins");
+    const pluginsFilePath = join(pluginsRootPath, "index.js");
+    if (!await pathExists(pluginsFilePath)) {
+        await ensureDir(pluginsRootPath);
+        writeFileSync(pluginsFilePath, "module.exports = require('../../plugins');");
+    }
 }
