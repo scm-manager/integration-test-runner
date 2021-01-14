@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- steps and commands for common tests scenarios ([#1](https://github.com/scm-manager/integration-test-runner/pull/1))
+- Steps and commands for common tests scenarios ([#1](https://github.com/scm-manager/integration-test-runner/pull/1))
 
 ### [1.0.0]
 ### Added
