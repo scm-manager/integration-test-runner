@@ -100,7 +100,7 @@ const restSetUserPermissions = (username, permissions) => {
 Cypress.Commands.add("restLogin", restLogin);
 Cypress.Commands.add("restLogout", restLogout);
 Cypress.Commands.add("restSetAnonymousMode", restSetAnonymousMode);
-Cypress.Commands.add("restSetPermission", restSetPermission);
+Cypress.Commands.add("restSetUserPermissions", restSetUserPermissions);
 Cypress.Commands.add("login", login);
 Cypress.Commands.add("setAnonymousMode", setAnonymousMode);
 Cypress.Commands.add("byTestId", testId => cy.get(`[data-testid=${testId}]`));

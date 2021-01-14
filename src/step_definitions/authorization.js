@@ -23,5 +23,5 @@
  */
 
 Given("Anonymous user has permission to read all repositories", () => {
-  cy.restSetPermission("_anonymous", ["repository:read,pull:*"]);
+  cy.restSetUserPermissions("_anonymous", ["repository:read,pull:*"]);
 });
