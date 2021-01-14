@@ -7,7 +7,7 @@ const {emptyDir} = require('fs-extra');
 const AdmZip = require('adm-zip');
 
 exports.command = "collect";
-exports.describe = "collect and package tests";
+exports.describe = "collect available tests from repositories";
 exports.builder = {
   outPath: {
       alias: 'o',

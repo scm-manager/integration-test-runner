@@ -3,7 +3,7 @@ const {cutVideo} = require('../src/cut-video');
 const {unlinkSync} = require('fs');
 
 exports.command = "run";
-exports.describe = "runs the provided test suite against a given scm-manager instance";
+exports.describe = "runs the provisioned test suite against a given scm-manager instance";
 exports.builder = {
     url: {
         alias: 'a',

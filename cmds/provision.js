@@ -7,7 +7,7 @@ const {forEachFileInDirectoryRecursive} = require('../src/foreach-file-in-direct
 const {copyDirContents} = require('../src/copy-dir-contents');
 
 exports.command = "provision";
-exports.describe = "runs the provided test suite against a given scm-manager instance";
+exports.describe = "prepare run command based on a given scm-manager instance's version and plugins";
 exports.builder = {
     url: {
         alias: 'a',

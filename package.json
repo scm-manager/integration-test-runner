@@ -7,8 +7,11 @@
   "author": "Konstantin Schaper <konstantin.schaper@cloudogu.com>",
   "license": "MIT",
   "private": false,
+  "scripts": {
+    "integration-test-runner": "node cli.js"
+  },
   "bin": {
-    "integration-test-runner": "./cli.js"
+    "integration-test-runner": "cli.js"
   },
   "dependencies": {
     "@cypress/browserify-preprocessor": "^3.0.1",
