@@ -1,6 +1,6 @@
 {
   "name": "@scm-manager/integration-test-runner",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Cli application for running integration tests",
   "main": "cli.js",
   "repository": "git@github.com:scm-manager/integration-test-runner.git",
