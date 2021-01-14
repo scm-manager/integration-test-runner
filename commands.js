@@ -81,7 +81,7 @@ const restSetAnonymousMode = (anonymousMode) => {
     );
 };
 
-const restSetPermission = (username, permissions) => {
+const restSetUserPermissions = (username, permissions) => {
     const url = `http://localhost:8081/scm/api/v2/users/${encodeURIComponent(username)}/permissions`;
     cy.request(
         withAuth({
