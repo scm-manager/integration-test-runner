@@ -22,26 +22,34 @@
  * SOFTWARE.
  */
 
-Given("User is authenticated", () => {
-  cy.restLogin(Cypress.env("USERNAME"), Cypress.env("PASSWORD"));
+const hri = require('human-readable-ids').hri;
+
+Given("User is authenticated", function () {
+    const username = hri.random();
+    const password = hri.random();
+    cy.restCreateUser(username, password);
+    cy.restLogin(username, password);
+    this.user = {username, password};
 });
 
 Given("User is not authenticated", () => {
-  cy.restLogout();
+    cy.restLogout();
 });
 
 Then("User should be anonymous", () => {
-  cy.byTestId("scm-anonymous");
+    cy.byTestId("scm-anonymous");
 });
 
 Then("User should be authenticated", () => {
-  cy.byTestId("scm-administrator");
+    cy.byTestId("scm-administrator");
 });
 
 When("Users clicks login button", () => {
-  cy.byTestId("login-button").click();
+    cy.byTestId("login-button").click();
 });
 
-When("User logs in", () => {
-  cy.login(Cypress.env("USERNAME"), Cypress.env("PASSWORD"));
+When("User logs in", function () {
+    const {username, password} = this.user;
+    cy.restCreateUser(username, password);
+    cy.login(username, password);
 });
