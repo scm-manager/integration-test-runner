@@ -10,3 +10,7 @@ Given("A git repository exists", function () {
 Given("User has permission to read and write repository", function () {
     cy.restSetUserRepositoryRole(this.user.username, Cypress.env("USERNAME"), this.repository.name, "WRITE");
 });
+
+Given("User has permission to read repository", function () {
+    cy.restSetUserRepositoryRole(this.user.username, Cypress.env("USERNAME"), this.repository.name, "READ");
+});

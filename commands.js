@@ -1,3 +1,4 @@
+require('cypress-file-upload');
 const {withAuth} = require('./helpers');
 
 const login = (username, password) => {
