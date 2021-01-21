@@ -137,8 +137,8 @@ const restCreateUser = (username, password) => {
     );
 };
 
-const restCreateRepo = (type, namespace, name) => {
-    const reposUrl = `http://localhost:8081/scm/api/v2/repositories?initialize=true`;
+const restCreateRepo = (type, namespace, name, initialize) => {
+    const reposUrl = `http://localhost:8081/scm/api/v2/repositories` + (initialize ? "?initialize=true" : "");
 
     return cy.request(withAuth({
         method: "POST",
