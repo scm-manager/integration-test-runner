@@ -40,8 +40,8 @@ Then("User should be anonymous", () => {
     cy.byTestId("scm-anonymous");
 });
 
-Then("User should be authenticated", () => {
-    cy.byTestId("scm-administrator");
+Then("User should be authenticated", function () {
+    cy.byTestId(this.user.username);
 });
 
 When("Users clicks login button", () => {
@@ -49,6 +49,12 @@ When("Users clicks login button", () => {
 });
 
 When("User logs in", function () {
+    if (!this.user) {
+        this.user = {
+            username: hri.random(),
+            password: hri.random()
+        };
+    }
     const {username, password} = this.user;
     cy.restCreateUser(username, password);
     cy.login(username, password);
