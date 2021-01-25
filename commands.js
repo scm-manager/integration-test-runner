@@ -1,4 +1,5 @@
-const { withAuth } = require('./helpers');
+require('cypress-file-upload');
+const {withAuth} = require('./helpers');
 
 const login = (username, password) => {
     cy.visit("/login");
@@ -97,10 +98,69 @@ const restSetUserPermissions = (username, permissions) => {
     );
 };
 
+const restSetUserRepositoryRole = (username, namespace, name, role) => {
+    const url = `http://localhost:8081/scm/api/v2/repositories/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/permissions`;
+    cy.request(
+        withAuth({
+            method: "POST",
+            url,
+            headers: {
+                "Content-Type": "application/vnd.scmm-repositoryPermission+json;v=2",
+            },
+            body: {
+                name: username,
+                role,
+                groupPermission: false,
+                verbs: []
+            },
+        })
+    );
+};
+
+const restCreateUser = (username, password) => {
+    const url = `http://localhost:8081/scm/api/v2/users`;
+    cy.request(
+        withAuth({
+            method: "POST",
+            url,
+            headers: {
+                "Content-Type": "application/vnd.scmm-user+json;v=2",
+            },
+            body: {
+                name: username,
+                displayName: username,
+                mail: `${username}@hitchhiker.com`,
+                password,
+                active: true
+            },
+        })
+    );
+};
+
+const restCreateRepo = (type, namespace, name, initialize) => {
+    const reposUrl = `http://localhost:8081/scm/api/v2/repositories` + (initialize ? "?initialize=true" : "");
+
+    return cy.request(withAuth({
+        method: "POST",
+        url: reposUrl,
+        headers: {
+            "Content-Type": "application/vnd.scmm-repository+json;v=2"
+        },
+        body: {
+            name,
+            namespace,
+            type
+        }
+    }));
+};
+
+Cypress.Commands.add("restCreateRepo", restCreateRepo);
 Cypress.Commands.add("restLogin", restLogin);
 Cypress.Commands.add("restLogout", restLogout);
 Cypress.Commands.add("restSetAnonymousMode", restSetAnonymousMode);
 Cypress.Commands.add("restSetUserPermissions", restSetUserPermissions);
+Cypress.Commands.add("restSetUserRepositoryRole", restSetUserRepositoryRole);
+Cypress.Commands.add("restCreateUser", restCreateUser);
 Cypress.Commands.add("login", login);
 Cypress.Commands.add("setAnonymousMode", setAnonymousMode);
 Cypress.Commands.add("byTestId", testId => cy.get(`[data-testid=${testId}]`));

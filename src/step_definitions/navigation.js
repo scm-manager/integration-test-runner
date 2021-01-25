@@ -38,6 +38,10 @@ When("User visits their user settings", () => {
   cy.visit("/me/settings/");
 });
 
+When("User visits code view of repository", function () {
+  cy.visit(`/repo/${this.repository.namespace}/${this.repository.name}/code/sources/main`);
+});
+
 Then("The login page is shown", () => {
   cy.byTestId("login-button");
 });
