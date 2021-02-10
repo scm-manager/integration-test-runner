@@ -41,14 +41,16 @@ exports.handler = async argv => {
     config: {
       baseUrl: argv.url,
       videoUploadOnPasses: false,
-      videoCompression: false
+      videoCompression: false,
+      screenshotsFolder: "../build/target/cypress/screenshots",
+      videosFolder: "../build/target/cypress/videos"
     },
     env: {
       USERNAME: argv.username,
       PASSWORD: argv.password
     },
     reporterOptions: {
-      mochaFile: "target/cypress-reports/TEST-[hash].xml"
+      mochaFile: "../build/target/cypress/reports/TEST-[hash].xml"
     },
     reporter: "junit",
     testFiles: "**/*.{feature,features}",

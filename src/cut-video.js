@@ -30,7 +30,14 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 const createOutputFile = test => {
   const title = test.title.join(" -- ");
-  return path.join("cypress", "videos", `${title}.mp4`);
+  return path.join(
+    "..",
+    "build",
+    "target",
+    "cypress",
+    "videos",
+    `${title}.mp4`
+  );
 };
 
 const cutVideo = (video, test) => {
