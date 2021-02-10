@@ -31,6 +31,12 @@ exports.builder = {
     alias: "d",
     type: "string",
     description: "the relative directory cypress is in"
+  },
+  output: {
+    alias: "O",
+    default: "",
+    type: "string",
+    description: "the output path for test reports, screenshots and videos"
   }
 };
 exports.handler = async argv => {
@@ -42,15 +48,15 @@ exports.handler = async argv => {
       baseUrl: argv.url,
       videoUploadOnPasses: false,
       videoCompression: false,
-      screenshotsFolder: "../build/target/cypress/screenshots",
-      videosFolder: "../build/target/cypress/videos"
+      screenshotsFolder: argv.output + "cypress/screenshots",
+      videosFolder:  argv.output + "cypress/videos"
     },
     env: {
       USERNAME: argv.username,
       PASSWORD: argv.password
     },
     reporterOptions: {
-      mochaFile: "../build/target/cypress/reports/TEST-[hash].xml"
+      mochaFile:  argv.output + "cypress/reports/TEST-[hash].xml"
     },
     reporter: "junit",
     testFiles: "**/*.{feature,features}",
