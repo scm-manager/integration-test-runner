@@ -1,6 +1,32 @@
 require("cypress-file-upload");
 const { withAuth } = require("./helpers");
 
+const defaultScmManagerConfig = {
+  proxyPassword: null,
+  proxyPort: 8080,
+  proxyServer: "proxy.mydomain.com",
+  proxyUser: null,
+  enableProxy: false,
+  realmDescription: "SONIA :: SCM Manager",
+  disableGroupingGrid: false,
+  dateFormat: "YYYY-MM-DD HH:mm:ss",
+  anonymousMode: "OFF",
+  baseUrl: "https://localhost:8081/scm",
+  forceBaseUrl: false,
+  loginAttemptLimit: 100,
+  proxyExcludes: [],
+  skipFailedAuthenticators: false,
+  pluginUrl:
+    "https://plugin-center-api.scm-manager.org/api/v1/plugins/{version}?os={os}&arch={arch}&x=u",
+  loginAttemptLimitTimeout: 300,
+  enabledXsrfProtection: true,
+  enabledUserConverter: false,
+  namespaceStrategy: "CustomNamespaceStrategy",
+  loginInfoUrl: "https://login-info.scm-manager.org/api/v1/login-info",
+  releaseFeedUrl: "https://scm-manager.org/download/rss.xml",
+  mailDomainName: "scm-manager.local"
+};
+
 const login = (username, password) => {
   cy.visit("/login");
   cy.byTestId("username-input").type(username);
@@ -44,33 +70,11 @@ const restLogout = () => {
 };
 
 const restSetAnonymousMode = anonymousMode => {
-  const configUrl = "http://localhost:8081/scm/api/v2/config";
+  return restSetConfig({ anonymousMode });
+};
 
-  const content = {
-    proxyPassword: null,
-    proxyPort: 8080,
-    proxyServer: "proxy.mydomain.com",
-    proxyUser: null,
-    enableProxy: false,
-    realmDescription: "SONIA :: SCM Manager",
-    disableGroupingGrid: false,
-    dateFormat: "YYYY-MM-DD HH:mm:ss",
-    anonymousMode,
-    baseUrl: "https://localhost:8081/scm",
-    forceBaseUrl: false,
-    loginAttemptLimit: 100,
-    proxyExcludes: [],
-    skipFailedAuthenticators: false,
-    pluginUrl:
-      "https://plugin-center-api.scm-manager.org/api/v1/plugins/{version}?os={os}&arch={arch}&x=u",
-    loginAttemptLimitTimeout: 300,
-    enabledXsrfProtection: true,
-    enabledUserConverter: false,
-    namespaceStrategy: "RepositoryTypeNamespaceStrategy",
-    loginInfoUrl: "https://login-info.scm-manager.org/api/v1/login-info",
-    releaseFeedUrl: "https://scm-manager.org/download/rss.xml",
-    mailDomainName: "scm-manager.local"
-  };
+const restSetConfig = (config = {}) => {
+  const configUrl = "http://localhost:8081/scm/api/v2/config";
   cy.request(
     withAuth({
       method: "PUT",
@@ -78,7 +82,7 @@ const restSetAnonymousMode = anonymousMode => {
       headers: {
         "Content-Type": "application/vnd.scmm-config+json;v=2"
       },
-      body: content
+      body: { ...defaultScmManagerConfig, ...config }
     })
   );
 };
@@ -167,6 +171,7 @@ Cypress.Commands.add("restCreateRepo", restCreateRepo);
 Cypress.Commands.add("restLogin", restLogin);
 Cypress.Commands.add("restLogout", restLogout);
 Cypress.Commands.add("restSetAnonymousMode", restSetAnonymousMode);
+Cypress.Commands.add("restSetConfig", restSetConfig);
 Cypress.Commands.add("restSetUserPermissions", restSetUserPermissions);
 Cypress.Commands.add("restSetUserRepositoryRole", restSetUserRepositoryRole);
 Cypress.Commands.add("restCreateUser", restCreateUser);
