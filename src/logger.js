@@ -1,8 +1,8 @@
-const createLogger = require('pino');
-const {name} = require("../package");
+const createLogger = require("pino");
+const { name } = require("../package");
 
 module.exports = createLogger({
-    name,
-    level: process.env.LOG_LEVEL || "info",
-    prettyPrint: true
+  name,
+  level: process.env.LOG_LEVEL || "info",
+  prettyPrint: true
 });

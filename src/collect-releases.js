@@ -12,13 +12,13 @@ async function collectReleases(api, repository) {
 
   for await (const tags of api.paginate.iterator(api.repos.listTags, {
     owner: organization,
-    repo: repository,
+    repo: repository
   })) {
     for (const tag of tags.data) {
       if (semver.valid(tag.name)) {
         releases.push({
           version: tag.name,
-          sha: tag.commit.sha,
+          sha: tag.commit.sha
         });
       } else {
         logger.debug(`skipped non semver version ${tag.name} at ${repository}`);

@@ -1,31 +1,31 @@
-const {pathExists, stat, readdir} = require("fs-extra");
-const {join} = require("path");
-const logger = require('./logger');
+const { pathExists, stat, readdir } = require("fs-extra");
+const { join } = require("path");
+const logger = require("./logger");
 
 async function forEachRecursive(root, callback, parallel = false, path = []) {
-    const currentDir = join(root, ...path);
-    if (!(await pathExists(currentDir))) {
-        logger.warn(`Path '${currentDir}' does not exist`);
-        return;
+  const currentDir = join(root, ...path);
+  if (!(await pathExists(currentDir))) {
+    logger.warn(`Path '${currentDir}' does not exist`);
+    return;
+  }
+  const files = await readdir(currentDir);
+  for (const file of files) {
+    const filePath = join(currentDir, file);
+    const fstat = await stat(filePath);
+    if (fstat.isDirectory()) {
+      if (parallel) {
+        forEachRecursive(root, callback, parallel, [...path, file]);
+      } else {
+        await forEachRecursive(root, callback, parallel, [...path, file]);
+      }
+    } else if (fstat.isFile()) {
+      if (parallel) {
+        callback([...path, file]);
+      } else {
+        await callback([...path, file]);
+      }
     }
-    const files = await readdir(currentDir);
-    for (const file of files) {
-        const filePath = join(currentDir, file);
-        const fstat = await stat(filePath);
-        if (fstat.isDirectory()) {
-            if (parallel) {
-                forEachRecursive(root, callback, parallel, [...path, file]);
-            } else {
-                await forEachRecursive(root, callback, parallel, [...path, file]);
-            }
-        } else if (fstat.isFile()) {
-            if (parallel) {
-                callback([...path, file]);
-            } else {
-                await callback([...path, file]);
-            }
-        }
-    }
+  }
 }
 
 /**
@@ -36,7 +36,7 @@ async function forEachRecursive(root, callback, parallel = false, path = []) {
  * @returns {Promise<void>}
  */
 function forEachFileInDirectoryRecursive(root, callback, parallel = false) {
-    return forEachRecursive(root, callback, parallel);
+  return forEachRecursive(root, callback, parallel);
 }
 
 exports.forEachFileInDirectoryRecursive = forEachFileInDirectoryRecursive;

@@ -1,12 +1,21 @@
-'use strict';
+"use strict";
 
-const { ensureDir, emptyDir, mkdtemp, remove, move, pathExists, readdir, stat } = require('fs-extra');
-const { readFileSync } = require('fs');
-const {spawn} = require('child_process');
-const { organization } = require('./config');
-const { join } = require('path');
-const { tmpdir } = require('os');
-const {parseStringPromise} = require('xml2js');
+const {
+  ensureDir,
+  emptyDir,
+  mkdtemp,
+  remove,
+  move,
+  pathExists,
+  readdir,
+  stat
+} = require("fs-extra");
+const { readFileSync } = require("fs");
+const { spawn } = require("child_process");
+const { organization } = require("./config");
+const { join } = require("path");
+const { tmpdir } = require("os");
+const { parseStringPromise } = require("xml2js");
 const logger = require("./logger");
 
 /**
@@ -17,12 +26,20 @@ const logger = require("./logger");
  *
  * @see https://stackoverflow.com/a/52269934
  */
-async function collectTests(api, repository, versions, outPath, relativeCypressDir = 'src/test/e2e/cypress') {
+async function collectTests(
+  api,
+  repository,
+  versions,
+  outPath,
+  relativeCypressDir = "src/test/e2e/cypress"
+) {
   if (!versions.length) {
-    logger.info(`Skipping ${repository}: no versions found`)
+    logger.info(`Skipping ${repository}: no versions found`);
     return;
   }
-  logger.info(`Collecting ${repository} (${versions.map(v => v.version).join(', ')}) ...`);
+  logger.info(
+    `Collecting ${repository} (${versions.map(v => v.version).join(", ")}) ...`
+  );
 
   const tmpClonePath = await mkdtemp(join(tmpdir(), `${repository}-`));
 
@@ -33,16 +50,28 @@ async function collectTests(api, repository, versions, outPath, relativeCypressD
     const git = createGit(tmpClonePath);
 
     await git(`clone`, `--no-checkout`, cloneUrl, `.`);
-    await git(`sparse-checkout`, `set`, `--cone`, "pom.xml", relativeCypressDir);
+    await git(
+      `sparse-checkout`,
+      `set`,
+      `--cone`,
+      "pom.xml",
+      relativeCypressDir
+    );
     await git(`reset`, `--hard`, `HEAD`);
 
-    logger.debug(`Collecting e2e tests for ${repository} ...`)
+    logger.debug(`Collecting e2e tests for ${repository} ...`);
     for (const { version, sha } of versions) {
-      await collectVersionTestFiles(tmpClonePath, version, sha, outPath, relativeCypressDir);
+      await collectVersionTestFiles(
+        tmpClonePath,
+        version,
+        sha,
+        outPath,
+        relativeCypressDir
+      );
     }
     await collectDevelopTestFiles(tmpClonePath, outPath, relativeCypressDir);
   } finally {
-    logger.trace(`Removing temporary working directory: ${tmpClonePath} ...`)
+    logger.trace(`Removing temporary working directory: ${tmpClonePath} ...`);
     await remove(tmpClonePath);
   }
 }
@@ -51,27 +80,27 @@ function createGit(workingPath) {
   return (...args) => {
     logger.trace(`calling 'git'`);
     return new Promise((resolve, reject) => {
-      const child = spawn("git", args, {cwd: workingPath});
-      
+      const child = spawn("git", args, { cwd: workingPath });
+
       let stderr = "";
 
-      child.stderr.on('data', data => {
+      child.stderr.on("data", data => {
         stderr += data;
       });
 
-      child.on('exit', rc => {
+      child.on("exit", rc => {
         if (rc === 0) {
           resolve();
         } else {
           if (stderr) {
             logger.error(stderr);
           }
-          reject(new Error(`process ends with ${rc}`))
+          reject(new Error(`process ends with ${rc}`));
         }
-      })
-    })
-  }
-};
+      });
+    });
+  };
+}
 
 function createCloneURL(repository) {
   let auth = "";
@@ -82,8 +111,14 @@ function createCloneURL(repository) {
   return `https://${auth}github.com/${organization}/${repository}`;
 }
 
-async function collectVersionTestFiles(tmpDir, version, sha, outPath, relativeCypressDir) {
-  logger.debug(`Checking out ${version} (${sha}) ...`)
+async function collectVersionTestFiles(
+  tmpDir,
+  version,
+  sha,
+  outPath,
+  relativeCypressDir
+) {
+  logger.debug(`Checking out ${version} (${sha}) ...`);
   const git = createGit(tmpDir);
   await git(`checkout`, `-f`, sha);
 
@@ -91,11 +126,11 @@ async function collectVersionTestFiles(tmpDir, version, sha, outPath, relativeCy
 }
 
 async function collectDevelopTestFiles(tmpDir, outPath, relativeCypressDir) {
-  logger.debug(`Checking out develop ...`)
+  logger.debug(`Checking out develop ...`);
   const git = createGit(tmpDir);
   await git(`checkout`, `develop`);
 
-  const pomXml = readFileSync(join(tmpDir, 'pom.xml'));
+  const pomXml = readFileSync(join(tmpDir, "pom.xml"));
   const pomJson = await parseStringPromise(pomXml);
   const [pomVersion] = pomJson.project.version;
   logger.debug(pomVersion);
@@ -115,13 +150,17 @@ async function collectTestFiles(tmpDir, outPath, relativeCypressDir, version) {
     // Commands
     const commandsInPath = join(testsPath, "support", "commands");
     const commandsOutPath = join(versionPath, "commands");
-    logger.debug(`Move content from ${commandsInPath} to ${commandsOutPath} ...`);
+    logger.debug(
+      `Move content from ${commandsInPath} to ${commandsOutPath} ...`
+    );
     await moveDirContents(commandsOutPath, commandsInPath);
 
     // Features
     const featuresInPath = join(testsPath, "integration");
     const featuresOutPath = join(versionPath, "features");
-    logger.debug(`Move content from ${featuresInPath} to ${featuresOutPath} ...`);
+    logger.debug(
+      `Move content from ${featuresInPath} to ${featuresOutPath} ...`
+    );
     await moveDirContents(featuresOutPath, featuresInPath);
 
     // Steps
@@ -132,7 +171,7 @@ async function collectTestFiles(tmpDir, outPath, relativeCypressDir, version) {
 
     logger.debug(`Content collected for ${version} and moved to ${outPath}`);
   } else {
-    logger.debug(`No e2e tests folder in version ${version}, skipping ...`)
+    logger.debug(`No e2e tests folder in version ${version}, skipping ...`);
   }
 }
 
@@ -143,7 +182,7 @@ async function collectTestFiles(tmpDir, outPath, relativeCypressDir, version) {
  * @returns {Promise<void>}
  */
 function moveFileIfExsists(from, to, file) {
-  return moveIfExsists(join(from, file), join(to, file))
+  return moveIfExsists(join(from, file), join(to, file));
 }
 
 /**
@@ -153,13 +192,13 @@ function moveFileIfExsists(from, to, file) {
  */
 async function moveIfExsists(from, to) {
   if (await pathExists(from)) {
-    logger.trace(`Moving '${from}' to '${to}' ...`)
+    logger.trace(`Moving '${from}' to '${to}' ...`);
     await move(from, to, {
       overwrite: true
-    })
-    logger.trace(`Moved '${from}' to '${to}'!`)
+    });
+    logger.trace(`Moved '${from}' to '${to}'!`);
   } else {
-    logger.warn(`Nothing to move, '${from}' does not exist!`)
+    logger.warn(`Nothing to move, '${from}' does not exist!`);
   }
 }
 
@@ -174,7 +213,7 @@ async function moveIfExsists(from, to) {
 async function moveDirContents(to, dirRoot, filter = () => true, path = []) {
   const currentDir = join(dirRoot, ...path);
   if (!(await pathExists(currentDir))) {
-    logger.debug(`Path '${currentDir}' does not exist, skipping ...`)
+    logger.debug(`Path '${currentDir}' does not exist, skipping ...`);
     return;
   }
   const files = await readdir(currentDir);
@@ -182,7 +221,7 @@ async function moveDirContents(to, dirRoot, filter = () => true, path = []) {
     const filePath = join(currentDir, file);
     const fstat = await stat(filePath);
     if (fstat.isDirectory()) {
-      await moveDirContents(to, dirRoot, filter,[...path, file]);
+      await moveDirContents(to, dirRoot, filter, [...path, file]);
     } else if (fstat.isFile() && filter(file)) {
       await moveFileIfExsists(currentDir, to, file);
     }

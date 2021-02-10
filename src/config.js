@@ -1,4 +1,4 @@
 module.exports = {
-  organization: "scm-manager",
-  core: "scm-manager"
+    organization: "scm-manager",
+    core: "scm-manager"
 }

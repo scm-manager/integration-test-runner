@@ -10,9 +10,9 @@ async function collectPlugins(api) {
   const plugins = [];
 
   for await (const repositories of api.paginate.iterator(api.repos.listForOrg, {
-    org: organization,
+    org: organization
   })) {
-    for (const {name} of repositories.data) {
+    for (const { name } of repositories.data) {
       if (name.match(/^scm-[a-z-]+-plugin$/)) {
         plugins.push(name);
       } else {
