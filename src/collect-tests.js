@@ -10,12 +10,11 @@ const {
   readdir,
   stat
 } = require("fs-extra");
-const { readFileSync } = require("fs");
 const { spawn } = require("child_process");
 const { organization } = require("./config");
 const { join } = require("path");
 const { tmpdir } = require("os");
-const { parseStringPromise } = require("xml2js");
+const fetch = require("isomorphic-fetch");
 const logger = require("./logger");
 
 /**
@@ -50,13 +49,8 @@ async function collectTests(
     const git = createGit(tmpClonePath);
 
     await git(`clone`, `--no-checkout`, cloneUrl, `.`);
-    await git(
-      `sparse-checkout`,
-      `set`,
-      `--cone`,
-      "pom.xml",
-      relativeCypressDir
-    );
+    await git(`sparse-checkout`, `init`, `--cone`);
+    await git(`sparse-checkout`, `set`, relativeCypressDir);
     await git(`reset`, `--hard`, `HEAD`);
 
     logger.debug(`Collecting e2e tests for ${repository} ...`);
@@ -130,12 +124,28 @@ async function collectDevelopTestFiles(tmpDir, outPath, relativeCypressDir) {
   const git = createGit(tmpDir);
   await git(`checkout`, `develop`);
 
-  const pomXml = readFileSync(join(tmpDir, "pom.xml"));
-  const pomJson = await parseStringPromise(pomXml);
-  const [pomVersion] = pomJson.project.version;
-  logger.debug(pomVersion);
+  let version;
 
-  await collectTestFiles(tmpDir, outPath, relativeCypressDir, pomVersion);
+  const gradleResponse = await fetch(
+    `https://raw.githubusercontent.com/scm-manager/scm-manager/develop/gradle.properties`,
+    {
+      headers: { Authorization: "token " + process.env.GITHUB_API_TOKEN }
+    }
+  );
+
+  if (gradleResponse.ok) {
+    const gradleProps = await gradleResponse.text();
+    const lines = gradleProps.match(/[^\r\n]+/g);
+    for (const line of lines) {
+      if (line.startsWith("version")) {
+        version = line.split("=")[1].trim();
+        break;
+      }
+    }
+  }
+  logger.debug(version);
+
+  await collectTestFiles(tmpDir, outPath, relativeCypressDir, version);
 }
 
 async function collectTestFiles(tmpDir, outPath, relativeCypressDir, version) {
