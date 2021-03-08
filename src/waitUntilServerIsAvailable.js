@@ -1,4 +1,5 @@
 const logger = require("./logger");
+const axios = require("axios");
 
 const waitUntilServerIsAvailable = url => {
   return new Promise((resolve, reject) => {
