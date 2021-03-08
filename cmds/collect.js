@@ -29,6 +29,10 @@ exports.builder = {
 exports.handler = async argv => {
   const logger = require("../src/logger");
 
+  if (!process.env.GITHUB_API_TOKEN) {
+    throw new Error("GitHub API token not set but required")
+  }
+
   logger.info("Starting preparation process...");
   const outDir = join(__dirname, "..", "e2e-tests");
   const zipPath = argv.outPath;

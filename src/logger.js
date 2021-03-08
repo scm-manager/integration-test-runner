@@ -3,6 +3,6 @@ const { name } = require("../package");
 
 module.exports = createLogger({
   name,
-  level: process.env.LOG_LEVEL || "info",
+  level: (process.env.LOG_LEVEL || "info").toLowerCase("en"),
   prettyPrint: true
 });

@@ -124,8 +124,13 @@ async function collectDevelopTestFiles(tmpDir, outPath, relativeCypressDir) {
   const git = createGit(tmpDir);
   await git(`checkout`, `develop`);
 
-  let version;
+  const version = await fetchDevelopBranchVersion()
+  logger.debug(`Collect tests for ${version}`);
 
+  await collectTestFiles(tmpDir, outPath, relativeCypressDir, version);
+}
+
+const fetchDevelopBranchVersion = async () => {
   const gradleResponse = await fetch(
     `https://raw.githubusercontent.com/scm-manager/scm-manager/develop/gradle.properties`,
     {
@@ -138,18 +143,20 @@ async function collectDevelopTestFiles(tmpDir, outPath, relativeCypressDir) {
     const lines = gradleProps.match(/[^\r\n]+/g);
     for (const line of lines) {
       if (line.startsWith("version")) {
-        version = line.split("=")[1].trim();
-        break;
+        return line.split("=")[1].trim();
       }
     }
+  } else {
+    throw new Error(
+      "Could not fetch version of develop, server returned: " +
+        gradleResponse.status
+    );
   }
-  logger.debug(version);
-
-  await collectTestFiles(tmpDir, outPath, relativeCypressDir, version);
-}
+  throw new Error("Could not find version")
+};
 
 async function collectTestFiles(tmpDir, outPath, relativeCypressDir, version) {
-  logger.info(`Collect testfiles for ${outPath}, ${version}`)
+  logger.info(`Collect testfiles for ${outPath}, ${version}`);
   const versionPath = join(outPath, version);
   const testsPath = join(tmpDir, relativeCypressDir);
 
