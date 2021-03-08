@@ -18,7 +18,7 @@ const checkServerIsAvailable = (url, resolve, reject, counter = 0) => {
     } else {
       logger.debug("Server not reachable. Try again in 1 second.");
       setTimeout(() => {
-        checkServerIsAvailable(url, resolve, reject, counter++);
+        checkServerIsAvailable(url, resolve, reject, ++counter);
       }, 1000);
     }
   });
