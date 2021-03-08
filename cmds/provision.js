@@ -7,6 +7,7 @@ const {
   forEachFileInDirectoryRecursive
 } = require("../src/foreach-file-in-directory-recursive");
 const { copyDirContents } = require("../src/copy-dir-contents");
+const waitUntilServerIsAvailable = require("../src/waitUntilServerIsAvailable");
 
 exports.command = "provision";
 exports.describe =
@@ -31,6 +32,8 @@ exports.builder = {
 };
 exports.handler = async argv => {
   const logger = require("../src/logger");
+
+  await waitUntilServerIsAvailable(argv.url);
 
   logger.info("Collecting versions from scm manager instance ...");
   const axiosInstance = axios.create({

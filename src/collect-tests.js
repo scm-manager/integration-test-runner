@@ -149,6 +149,7 @@ async function collectDevelopTestFiles(tmpDir, outPath, relativeCypressDir) {
 }
 
 async function collectTestFiles(tmpDir, outPath, relativeCypressDir, version) {
+  logger.info(`Collect testfiles for ${outPath}, ${version}`)
   const versionPath = join(outPath, version);
   const testsPath = join(tmpDir, relativeCypressDir);
 
