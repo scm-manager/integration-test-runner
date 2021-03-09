@@ -76,9 +76,15 @@ exports.handler = async argv => {
           });
           Promise.all(cuts)
             .then(() => unlinkSync(run.video))
-            .catch(err => logger.error("failed to cut video", err));
+            .catch(err => {
+              logger.error("failed to cut video", err)
+              process.exit(1)
+            });
         }
       });
     })
-    .catch(err => logger.error(err));
+    .catch(err => {
+      logger.error(err)
+      process.exit(1)
+    });
 };
