@@ -11,7 +11,7 @@ const defaultScmManagerConfig = {
   disableGroupingGrid: false,
   dateFormat: "YYYY-MM-DD HH:mm:ss",
   anonymousMode: "OFF",
-  baseUrl: "https://localhost:8081/scm",
+  baseUrl: Cypress.env('SERVER_BASE_URL'),
   forceBaseUrl: false,
   loginAttemptLimit: 100,
   proxyExcludes: [],
@@ -44,7 +44,7 @@ const setAnonymousMode = anonymousMode => {
 };
 
 const restLogin = (username, password) => {
-  const loginUrl = "http://localhost:8081/scm/api/v2/auth/access_token";
+  const loginUrl = `/api/v2/auth/access_token`;
 
   cy.request({
     method: "POST",
@@ -59,7 +59,7 @@ const restLogin = (username, password) => {
 };
 
 const restLogout = () => {
-  const logoutUrl = "http://localhost:8081/scm/api/v2/auth/access_token";
+  const logoutUrl = `/api/v2/auth/access_token`;
 
   cy.request(
     withAuth({
@@ -74,7 +74,8 @@ const restSetAnonymousMode = anonymousMode => {
 };
 
 const restSetConfig = (config = {}) => {
-  const configUrl = "http://localhost:8081/scm/api/v2/config";
+  const configUrl = `/api/v2/config`;
+  console.log(configUrl)
   cy.request(
     withAuth({
       method: "PUT",
@@ -88,7 +89,7 @@ const restSetConfig = (config = {}) => {
 };
 
 const restSetUserPermissions = (username, permissions) => {
-  const url = `http://localhost:8081/scm/api/v2/users/${encodeURIComponent(
+  const url = `/api/v2/users/${encodeURIComponent(
     username
   )}/permissions`;
   cy.request(
@@ -106,7 +107,7 @@ const restSetUserPermissions = (username, permissions) => {
 };
 
 const restSetUserRepositoryRole = (username, namespace, name, role) => {
-  const url = `http://localhost:8081/scm/api/v2/repositories/${encodeURIComponent(
+  const url = `/api/v2/repositories/${encodeURIComponent(
     namespace
   )}/${encodeURIComponent(name)}/permissions`;
   cy.request(
@@ -127,7 +128,7 @@ const restSetUserRepositoryRole = (username, namespace, name, role) => {
 };
 
 const restCreateUser = (username, password) => {
-  const url = `http://localhost:8081/scm/api/v2/users`;
+  const url = `/api/v2/users`;
   cy.request(
     withAuth({
       method: "POST",
@@ -148,7 +149,7 @@ const restCreateUser = (username, password) => {
 
 const restCreateRepo = (type, namespace, name, initialize) => {
   const reposUrl =
-    `http://localhost:8081/scm/api/v2/repositories` +
+      `/api/v2/repositories` +
     (initialize ? "?initialize=true" : "");
 
   return cy.request(
