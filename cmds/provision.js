@@ -89,7 +89,8 @@ exports.handler = async argv => {
   const supportOutRootDir = join(__dirname, "..", "cypress", "support");
   const stepsOutRootDir = join(supportOutRootDir, "step_definitions");
   const supportIndexFilePath = join(supportOutRootDir, "index.js");
-  let supportIndexJs = `import "../../commands";`;
+  let supportIndexJs = `import "../../commands";
+import "../../steps";`;
   await emptyDir(outRootDir);
   await ensureDir(featuresOutRootDir);
   await ensureDir(supportOutRootDir);
