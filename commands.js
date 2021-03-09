@@ -75,7 +75,6 @@ const restSetAnonymousMode = anonymousMode => {
 
 const restSetConfig = (config = {}) => {
   const configUrl = `/api/v2/config`;
-  console.log(configUrl)
   cy.request(
     withAuth({
       method: "PUT",

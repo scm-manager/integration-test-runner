@@ -8,6 +8,7 @@ const {
   move,
   pathExists,
   readdir,
+  readFileSync,
   stat
 } = require("fs-extra");
 const { spawn } = require("child_process");
@@ -16,6 +17,7 @@ const { join } = require("path");
 const { tmpdir } = require("os");
 const fetch = require("isomorphic-fetch");
 const logger = require("./logger");
+const { parseStringPromise } = require("xml2js");
 
 /**
  * @param {Octokit} api
@@ -63,7 +65,12 @@ async function collectTests(
         relativeCypressDir
       );
     }
-    await collectDevelopTestFiles(tmpClonePath, outPath, relativeCypressDir);
+    await collectDevelopTestFiles(
+      repository,
+      tmpClonePath,
+      outPath,
+      relativeCypressDir
+    );
   } finally {
     logger.trace(`Removing temporary working directory: ${tmpClonePath} ...`);
     await remove(tmpClonePath);
@@ -119,20 +126,25 @@ async function collectVersionTestFiles(
   await collectTestFiles(tmpDir, outPath, relativeCypressDir, version);
 }
 
-async function collectDevelopTestFiles(tmpDir, outPath, relativeCypressDir) {
+async function collectDevelopTestFiles(
+  repository,
+  tmpDir,
+  outPath,
+  relativeCypressDir
+) {
   logger.debug(`Checking out develop ...`);
   const git = createGit(tmpDir);
   await git(`checkout`, `develop`);
 
-  const version = await fetchDevelopBranchVersion()
+  const version = await fetchDevelopBranchVersion(repository, tmpDir);
   logger.debug(`Collect tests for ${version}`);
 
   await collectTestFiles(tmpDir, outPath, relativeCypressDir, version);
 }
 
-const fetchDevelopBranchVersion = async () => {
+const fetchDevelopBranchVersion = async (repository, tmpDir) => {
   const gradleResponse = await fetch(
-    `https://raw.githubusercontent.com/scm-manager/scm-manager/develop/gradle.properties`,
+    `https://raw.githubusercontent.com/scm-manager/${repository}/develop/gradle.properties`,
     {
       headers: { Authorization: "token " + process.env.GITHUB_API_TOKEN }
     }
@@ -147,16 +159,17 @@ const fetchDevelopBranchVersion = async () => {
       }
     }
   } else {
-    throw new Error(
-      "Could not fetch version of develop, server returned: " +
-        gradleResponse.status
-    );
+    const pomXml = readFileSync(join(tmpDir, "pom.xml"));
+    const pomJson = await parseStringPromise(pomXml);
+    const version = pomJson.project.version;
+    return Array.isArray(version) ? version[0] : version;
   }
-  throw new Error("Could not find version")
+  throw new Error("Could not find version");
 };
 
 async function collectTestFiles(tmpDir, outPath, relativeCypressDir, version) {
   logger.info(`Collect testfiles for ${outPath}, ${version}`);
+  console.log(tmpDir, outPath, relativeCypressDir, version)
   const versionPath = join(outPath, version);
   const testsPath = join(tmpDir, relativeCypressDir);
 

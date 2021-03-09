@@ -30,7 +30,7 @@ exports.handler = async argv => {
   const logger = require("../src/logger");
 
   if (!process.env.GITHUB_API_TOKEN) {
-    throw new Error("GitHub API token not set but required")
+    throw new Error("GitHub API token not set but required");
   }
 
   logger.info("Starting preparation process...");
@@ -72,9 +72,9 @@ exports.handler = async argv => {
   );
   logger.info("Collecting plugin tests ...");
   await Promise.all(
-    repositoriesWithReleases.map(({ repository, releases }) =>
-      collectTests(api, repository, releases, join(outDir, repository))
-    )
+    repositoriesWithReleases.map(({ repository, releases }) => {
+      collectTests(api, repository, releases, join(outDir, repository));
+    })
   );
 
   if (!argv.skipArchive) {
