@@ -89,8 +89,8 @@ exports.handler = async argv => {
   const supportOutRootDir = join(__dirname, "..", "cypress", "support");
   const stepsOutRootDir = join(supportOutRootDir, "step_definitions");
   const supportIndexFilePath = join(supportOutRootDir, "index.js");
-  let supportIndexJs = `import "../../commands";
-import "../../steps";`;
+  let supportIndexJs = `import "../../commands";`;
+  const stepsIndexFilePath = join(stepsOutRootDir, "index.js");
   await emptyDir(outRootDir);
   await ensureDir(featuresOutRootDir);
   await ensureDir(supportOutRootDir);
@@ -108,7 +108,9 @@ import "../../steps";`;
     // Collect Steps
     const stepsInDir = join(rootInDir, "steps");
     const stepsOutDir = join(stepsOutRootDir, name, version);
-    await copyDirContents(stepsOutDir, stepsInDir);
+    await copyDirContents(stepsOutDir, stepsInDir, file => file !== "index.js");
+
+    writeFileSync(stepsIndexFilePath, `import "../../../steps";`);
 
     // Collect Commands
     const commandsInDir = join(rootInDir, "commands");
@@ -121,7 +123,7 @@ import "../../steps";`;
         logger.debug(`Copying command from ${fileIn} to ${commandOut}`);
         copySync(fileIn, commandOut);
       });
-      // Add import to support file which loads the commands, the plugin requires an "index" file for its commands to work
+      // Add import to support file which loads the commands and steps, the plugin requires an "index" file for its commands to work
       supportIndexJs += `${EOL}import "./${name}";`;
     }
   }
