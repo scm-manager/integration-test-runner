@@ -49,42 +49,44 @@ exports.handler = async argv => {
       videoUploadOnPasses: false,
       videoCompression: false,
       screenshotsFolder: argv.output + "cypress/screenshots",
-      videosFolder:  argv.output + "cypress/videos"
+      videosFolder: argv.output + "cypress/videos"
     },
     env: {
       USERNAME: argv.username,
       PASSWORD: argv.password
     },
     reporterOptions: {
-      mochaFile:  argv.output + "cypress/reports/TEST-[hash].xml"
+      mochaFile: argv.output + "cypress/reports/TEST-[hash].xml"
     },
     reporter: "junit",
     testFiles: "**/*.{feature,features}",
     project: argv.directory || "."
   })
     .then(results => {
-      results.runs.forEach(run => {
-        // remove videos of successful runs
-        if (!run.shouldUploadVideo) {
-          unlinkSync(run.video);
-        } else {
-          const cuts = [];
-          run.tests.forEach(test => {
-            if (test.state !== "passed") {
-              cuts.push(cutVideo(run.video, test));
-            }
-          });
-          Promise.all(cuts)
-            .then(() => unlinkSync(run.video))
-            .catch(err => {
-              logger.error("failed to cut video", err)
-              process.exit(1)
+      if (results && results.runs) {
+        results.runs.forEach(run => {
+          // remove videos of successful runs
+          if (!run.shouldUploadVideo) {
+            unlinkSync(run.video);
+          } else {
+            const cuts = [];
+            run.tests.forEach(test => {
+              if (test.state !== "passed") {
+                cuts.push(cutVideo(run.video, test));
+              }
             });
-        }
-      });
+            Promise.all(cuts)
+              .then(() => unlinkSync(run.video))
+              .catch(err => {
+                logger.error("failed to cut video", err);
+                process.exit(1);
+              });
+          }
+        });
+      }
     })
     .catch(err => {
-      logger.error(err)
-      process.exit(1)
+      logger.error(err);
+      process.exit(1);
     });
 };

@@ -86,6 +86,7 @@ exports.handler = async argv => {
   logger.info("Collecting tests to run ...");
   const outRootDir = join(__dirname, "..", "cypress");
   const featuresOutRootDir = join(outRootDir, "integration");
+  const fixturesOutRootDir = join(outRootDir, "fixtures");
   const supportOutRootDir = join(__dirname, "..", "cypress", "support");
   const stepsOutRootDir = join(supportOutRootDir, "step_definitions");
   const supportIndexFilePath = join(supportOutRootDir, "index.js");
@@ -95,6 +96,7 @@ exports.handler = async argv => {
   await ensureDir(featuresOutRootDir);
   await ensureDir(supportOutRootDir);
   await ensureDir(stepsOutRootDir);
+  await ensureDir(fixturesOutRootDir);
   for (const { name, version } of testsToRun) {
     const rootInDir = join(__dirname, "..", "e2e-tests", name, version);
 
@@ -110,7 +112,10 @@ exports.handler = async argv => {
     const stepsOutDir = join(stepsOutRootDir, name, version);
     await copyDirContents(stepsOutDir, stepsInDir, file => file !== "index.js");
 
-    writeFileSync(stepsIndexFilePath, `import "../../../steps";`);
+    // Collect fixtures
+    const fixturesInDir = join(rootInDir, "fixtures");
+    // const fixturesOutDir = join(fixturesOutRootDir);
+    await copyDirContents(fixturesOutRootDir, fixturesInDir);
 
     // Collect Commands
     const commandsInDir = join(rootInDir, "commands");
@@ -127,6 +132,7 @@ exports.handler = async argv => {
       supportIndexJs += `${EOL}import "./${name}";`;
     }
   }
+  writeFileSync(stepsIndexFilePath, `import "../../../steps";`);
   writeFileSync(supportIndexFilePath, supportIndexJs);
 
   // Check plugins file

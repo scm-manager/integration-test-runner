@@ -5,5 +5,6 @@ module.exports = {
     ...require('./src/step_definitions/anonymous_mode'),
     ...require('./src/step_definitions/ui_elements'),
     ...require('./src/step_definitions/repos'),
-    ...require('./src/step_definitions/before')
+    ...require('./src/step_definitions/before'),
+    ...require('./src/step_definitions/after')
 };

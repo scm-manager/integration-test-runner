@@ -200,6 +200,13 @@ async function collectTestFiles(tmpDir, outPath, relativeCypressDir, version) {
     logger.debug(`Move content from ${stepsInPath} to ${stepsOutPath} ...`);
     await moveDirContents(stepsOutPath, stepsInPath);
 
+    // Fixtures
+    const fixturesInPath = join(testsPath, "fixtures");
+    const fixturesOutPath = join(versionPath, "fixtures");
+    logger.debug(
+        `Move content from ${fixturesInPath} to ${fixturesOutPath} ...`
+    );
+    await moveDirContents(fixturesOutPath, fixturesInPath);
     logger.debug(`Content collected for ${version} and moved to ${outPath}`);
   } else {
     logger.debug(`No e2e tests folder in version ${version}, skipping ...`);
