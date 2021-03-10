@@ -12,7 +12,7 @@ exports.describe = "collect available tests from repositories";
 exports.builder = {
   outPath: {
     alias: "o",
-    default: join(process.cwd(), "scm-manager-e2e-tests.zip"),
+    default: join(__dirname, "scm-manager-e2e-tests.zip"),
     type: "string",
     description: "Path and filename of generated archive"
   },
@@ -35,7 +35,7 @@ exports.handler = async argv => {
   }
 
   logger.info("Starting preparation process...");
-  const outDir = join(process.cwd(), "..", "e2e-tests");
+  const outDir = join(__dirname, "..", "e2e-tests");
   exec(`chmod -R a+rw ${outDir}`)
   const zipPath = argv.outPath;
 
@@ -83,7 +83,7 @@ exports.handler = async argv => {
     logger.info("Archive tests and runtime ...");
     const zip = new AdmZip();
 
-    zip.addLocalFolder(join(process.cwd(), ".."), undefined);
+    zip.addLocalFolder(join(__dirname, ".."), undefined);
 
     logger.info(`Write archive to: ${zipPath}`);
     await new Promise(resolve => zip.writeZip(zipPath, resolve));
