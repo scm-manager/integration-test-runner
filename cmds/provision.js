@@ -84,10 +84,10 @@ exports.handler = async argv => {
   testsToRun.push({ name: "scm-manager", version: coreVersion });
 
   logger.info("Collecting tests to run ...");
-  const outRootDir = join(__dirname, "..", "cypress");
+  const outRootDir = join(process.cwd(), "..", "cypress");
   const featuresOutRootDir = join(outRootDir, "integration");
   const fixturesOutRootDir = join(outRootDir, "fixtures");
-  const supportOutRootDir = join(__dirname, "..", "cypress", "support");
+  const supportOutRootDir = join(process.cwd(), "..", "cypress", "support");
   const stepsOutRootDir = join(supportOutRootDir, "step_definitions");
   const supportIndexFilePath = join(supportOutRootDir, "index.js");
   let supportIndexJs = `import "../../commands";`;
@@ -98,7 +98,7 @@ exports.handler = async argv => {
   await ensureDir(stepsOutRootDir);
   await ensureDir(fixturesOutRootDir);
   for (const { name, version } of testsToRun) {
-    const rootInDir = join(__dirname, "..", "e2e-tests", name, version);
+    const rootInDir = join(process.cwd(), "..", "e2e-tests", name, version);
 
     // Collect Features
     const featuresInDir = join(rootInDir, "features");
