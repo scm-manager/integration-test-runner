@@ -35,6 +35,7 @@ exports.handler = async argv => {
 
   logger.info("Starting preparation process...");
   const outDir = join(process.cwd(), "..", "e2e-tests");
+  exec(`chmod -R a+rw ${outDir}`)
   const zipPath = argv.outPath;
 
   logger.trace("Creating github api interface ...");
