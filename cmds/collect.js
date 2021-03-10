@@ -5,6 +5,7 @@ const { collectTests } = require("../src/collect-tests");
 const { join } = require("path");
 const { emptyDir } = require("fs-extra");
 const AdmZip = require("adm-zip");
+const { exec } = require('child_process');
 
 exports.command = "collect";
 exports.describe = "collect available tests from repositories";
