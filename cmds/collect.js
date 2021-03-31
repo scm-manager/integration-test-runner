@@ -5,14 +5,16 @@ const { collectTests } = require("../src/collect-tests");
 const { join } = require("path");
 const { emptyDir } = require("fs-extra");
 const AdmZip = require("adm-zip");
-const { exec } = require('child_process');
+const { exec } = require("child_process");
+
+const CWD = process.cwd();
 
 exports.command = "collect";
 exports.describe = "collect available tests from repositories";
 exports.builder = {
   outPath: {
     alias: "o",
-    default: join(__dirname, "scm-manager-e2e-tests.zip"),
+    default: join(CWD, "scm-manager-e2e-tests.zip"),
     type: "string",
     description: "Path and filename of generated archive"
   },
@@ -35,8 +37,8 @@ exports.handler = async argv => {
   }
 
   logger.info("Starting preparation process...");
-  const outDir = join(__dirname, "..", "e2e-tests");
-  exec(`chmod -R a+rw ${outDir}`)
+  const outDir = join(CWD, "e2e-tests");
+  exec(`chmod -R a+rw ${outDir}`);
   const zipPath = argv.outPath;
 
   logger.trace("Creating github api interface ...");
@@ -83,7 +85,7 @@ exports.handler = async argv => {
     logger.info("Archive tests and runtime ...");
     const zip = new AdmZip();
 
-    zip.addLocalFolder(join(__dirname, ".."), undefined);
+    zip.addLocalFolder(CWD);
 
     logger.info(`Write archive to: ${zipPath}`);
     await new Promise(resolve => zip.writeZip(zipPath, resolve));

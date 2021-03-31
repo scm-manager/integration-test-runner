@@ -1,4 +1,4 @@
-const { join } = require("path");
+const { join, isAbsolute } = require("path");
 const axios = require("axios").default;
 const { copySync, ensureDir, pathExists, emptyDir } = require("fs-extra");
 const { writeFileSync } = require("fs");
@@ -8,6 +8,8 @@ const {
 } = require("../src/foreach-file-in-directory-recursive");
 const { copyDirContents } = require("../src/copy-dir-contents");
 const waitUntilServerIsAvailable = require("../src/waitUntilServerIsAvailable");
+
+const CWD = process.cwd();
 
 exports.command = "provision";
 exports.describe =
@@ -28,6 +30,12 @@ exports.builder = {
     alias: "p",
     type: "string",
     description: "scm-manager account password"
+  },
+  directory: {
+    alias: "d",
+    type: "string",
+    description:
+      "the relative path to the cypress directory (will be created if it doesnt exist)"
   }
 };
 exports.handler = async argv => {
@@ -84,10 +92,16 @@ exports.handler = async argv => {
   testsToRun.push({ name: "scm-manager", version: coreVersion });
 
   logger.info("Collecting tests to run ...");
-  const outRootDir = join(__dirname, "..", "cypress");
+  const rootDir = argv.directory
+    ? isAbsolute(argv.directory)
+      ? argv.directory
+      : join(CWD, argv.directory)
+    : CWD;
+  const cypressDir = join(rootDir, "cypress");
+  const outRootDir = cypressDir;
   const featuresOutRootDir = join(outRootDir, "integration");
   const fixturesOutRootDir = join(outRootDir, "fixtures");
-  const supportOutRootDir = join(__dirname, "..", "cypress", "support");
+  const supportOutRootDir = join(cypressDir, "support");
   const stepsOutRootDir = join(supportOutRootDir, "step_definitions");
   const supportIndexFilePath = join(supportOutRootDir, "index.js");
   let supportIndexJs = `import "../../commands";`;
@@ -98,7 +112,7 @@ exports.handler = async argv => {
   await ensureDir(stepsOutRootDir);
   await ensureDir(fixturesOutRootDir);
   for (const { name, version } of testsToRun) {
-    const rootInDir = join(__dirname, "..", "e2e-tests", name, version);
+    const rootInDir = join(rootDir, "e2e-tests", name, version);
 
     // Collect Features
     const featuresInDir = join(rootInDir, "features");
