@@ -1,6 +1,12 @@
 const { join, isAbsolute } = require("path");
 const axios = require("axios").default;
-const { copySync, ensureDir, pathExists, emptyDir } = require("fs-extra");
+const {
+  copySync,
+  ensureDir,
+  pathExists,
+  emptyDir,
+  pathExistsSync
+} = require("fs-extra");
 const { writeFileSync } = require("fs");
 const { EOL } = require("os");
 const {
@@ -104,7 +110,10 @@ exports.handler = async argv => {
   const supportOutRootDir = join(cypressDir, "support");
   const stepsOutRootDir = join(supportOutRootDir, "step_definitions");
   const supportIndexFilePath = join(supportOutRootDir, "index.js");
-  let supportIndexJs = `import "../../commands";`;
+  let supportIndexJs = `import "${createRootFileImportPath(
+    "commands",
+    join("..", "..")
+  )}";`;
   const stepsIndexFilePath = join(stepsOutRootDir, "index.js");
   await emptyDir(outRootDir);
   await ensureDir(featuresOutRootDir);
@@ -146,7 +155,10 @@ exports.handler = async argv => {
       supportIndexJs += `${EOL}import "./${name}";`;
     }
   }
-  writeFileSync(stepsIndexFilePath, `import "../../../steps";`);
+  writeFileSync(
+    stepsIndexFilePath,
+    `import "${createRootFileImportPath("steps", join("..", "..", ".."))}";`
+  );
   writeFileSync(supportIndexFilePath, supportIndexJs);
 
   // Check plugins file
@@ -156,7 +168,18 @@ exports.handler = async argv => {
     await ensureDir(pluginsRootPath);
     writeFileSync(
       pluginsFilePath,
-      "module.exports = require('../../plugins');"
+      `module.exports = require('${createRootFileImportPath(
+        "plugins",
+        join("..", "..")
+      )}');`
     );
   }
 };
+
+function createRootFileImportPath(filename, relativePathToRootDirFromTarget) {
+  const path = join(CWD, `${filename}.js`);
+  const pathExist = pathExistsSync(path);
+  return pathExist
+    ? join(relativePathToRootDirFromTarget, filename)
+    : `@scm-manager/integration-test-runner/${filename}`;
+}
