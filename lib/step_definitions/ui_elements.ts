@@ -22,6 +22,18 @@
  * SOFTWARE.
  */
 
-Given("Anonymous user has permission to read all repositories", () => {
-  cy.restSetUserPermissions("_anonymous", ["repository:read,pull:*"]);
+import { Then } from "cypress-cucumber-preprocessor/steps";
+
+Then("There is no primary navigation", () => {
+  cy.containsNotByTestId("div", "primary-navigation-login");
+  cy.containsNotByTestId("div", "primary-navigation-repositories");
+});
+
+Then("There is a footer navigation", () => {
+  cy.byTestId("footer-user-profile");
+});
+
+Then("There is no option to change the password", () => {
+  cy.containsNotByTestId("ul", "user-settings-link");
+  cy.get("section").not("Change password");
 });

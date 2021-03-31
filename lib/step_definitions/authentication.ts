@@ -22,34 +22,43 @@
  * SOFTWARE.
  */
 
-When("User visits any page", () => {
-  cy.visit("/home");
+import { Given, Then, When } from "cypress-cucumber-preprocessor/steps";
+import { UserThisObject } from "../types";
+
+const hri = require("human-readable-ids").hri;
+
+Given("User is authenticated", function(this: UserThisObject) {
+  const username = hri.random();
+  const password = hri.random();
+  cy.restCreateUser(username, password);
+  cy.restLogin(username, password);
+  this.user = { username, password };
 });
 
-When("User visits login page", () => {
-  cy.visit("/login/");
+Given("User is not authenticated", () => {
+  cy.restLogout();
 });
 
-When("User visits the repository overview page", () => {
-  cy.visit("/repos/");
+Then("User should be anonymous", () => {
+  cy.byTestId("scm-anonymous");
 });
 
-When("User visits their user settings", () => {
-  cy.visit("/me/settings/");
+Then("User should be authenticated", function(this: UserThisObject) {
+  cy.byTestId(this.user!.username);
 });
 
-When("User visits code view of repository", function () {
-  cy.visit(`/repo/${this.repository.namespace}/${this.repository.name}/code/sources/main`);
+When("Users clicks login button", () => {
+  cy.byTestId("login-button").click();
 });
 
-Then("The login page is shown", () => {
-  cy.byTestId("login-button");
-});
-
-Then("There is a login button", () => {
-  cy.byTestId("primary-navigation-login");
-});
-
-Then("The repository overview page is shown", () => {
-  cy.byTestId("repository-overview-filter");
+When("User logs in", function(this: UserThisObject) {
+  if (!this.user) {
+    this.user = {
+      username: hri.random(),
+      password: hri.random()
+    };
+  }
+  const { username, password } = this.user;
+  cy.restCreateUser(username, password);
+  cy.login(username, password);
 });

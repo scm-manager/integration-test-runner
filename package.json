@@ -13,6 +13,10 @@
   "bin": {
     "integration-test-runner": "cli.js"
   },
+  "prettier": "@scm-manager/prettier-config",
+  "eslintConfig": {
+    "extends": "@scm-manager/eslint-config"
+  },
   "dependencies": {
     "@cypress/browserify-preprocessor": "^3.0.1",
     "@ffmpeg-installer/ffmpeg": "^1.0.20",
@@ -31,13 +35,17 @@
     "pino-pretty": "^4.3.0",
     "resolve": "^1.19.0",
     "semver": "^7.3.2",
+    "tsify": "^5.0.2",
     "typescript": "^4.0.5",
     "xml2js": "^0.4.23",
     "yargs": "^16.1.0"
   },
   "devDependencies": {
+    "@scm-manager/eslint-config": "^2.8.0",
+    "@scm-manager/prettier-config": "^2.8.0",
     "@types/node": "^14.14.6",
     "@types/pino": "^6.3.3",
+    "@types/resolve": "^1.20.0",
     "@types/yargs": "^15.0.9"
   }
 }

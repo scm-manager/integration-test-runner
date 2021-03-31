@@ -1,4 +1,4 @@
-exports.withAuth = request => ({
+export const withAuth = (request: any) => ({
   ...request,
   auth: {
     user: Cypress.env("USERNAME"),

@@ -22,40 +22,8 @@
  * SOFTWARE.
  */
 
-const hri = require('human-readable-ids').hri;
+import { Given } from "cypress-cucumber-preprocessor/steps";
 
-Given("User is authenticated", function () {
-    const username = hri.random();
-    const password = hri.random();
-    cy.restCreateUser(username, password);
-    cy.restLogin(username, password);
-    this.user = {username, password};
-});
-
-Given("User is not authenticated", () => {
-    cy.restLogout();
-});
-
-Then("User should be anonymous", () => {
-    cy.byTestId("scm-anonymous");
-});
-
-Then("User should be authenticated", function () {
-    cy.byTestId(this.user.username);
-});
-
-When("Users clicks login button", () => {
-    cy.byTestId("login-button").click();
-});
-
-When("User logs in", function () {
-    if (!this.user) {
-        this.user = {
-            username: hri.random(),
-            password: hri.random()
-        };
-    }
-    const {username, password} = this.user;
-    cy.restCreateUser(username, password);
-    cy.login(username, password);
+Given("Anonymous user has permission to read all repositories", () => {
+  cy.restSetUserPermissions("_anonymous", ["repository:read,pull:*"]);
 });

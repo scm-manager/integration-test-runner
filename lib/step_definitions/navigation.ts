@@ -22,14 +22,37 @@
  * SOFTWARE.
  */
 
-Given("Anonymous Mode is disabled", () => {
-  cy.restSetAnonymousMode("OFF");
+import { Then, When } from "cypress-cucumber-preprocessor/steps";
+import { RepositoryThisObject } from "../types";
+
+When("User visits any page", () => {
+  cy.visit("/home");
 });
 
-Given("Full Anonymous Mode is enabled", () => {
-  cy.restSetAnonymousMode("FULL");
+When("User visits login page", () => {
+  cy.visit("/login/");
 });
 
-Given("Protocol Only Anonymous Mode is enabled", () => {
-  cy.restSetAnonymousMode("PROTOCOL_ONLY");
+When("User visits the repository overview page", () => {
+  cy.visit("/repos/");
+});
+
+When("User visits their user settings", () => {
+  cy.visit("/me/settings/");
+});
+
+When("User visits code view of repository", function(this: RepositoryThisObject) {
+  cy.visit(`/repo/${this.repository!.namespace}/${this.repository!.name}/code/sources/main`);
+});
+
+Then("The login page is shown", () => {
+  cy.byTestId("login-button");
+});
+
+Then("There is a login button", () => {
+  cy.byTestId("primary-navigation-login");
+});
+
+Then("The repository overview page is shown", () => {
+  cy.byTestId("repository-overview-filter");
 });

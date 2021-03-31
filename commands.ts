@@ -1,5 +1,37 @@
-require("cypress-file-upload");
-const { withAuth } = require("./helpers");
+import "cypress-file-upload";
+import { withAuth } from "./helpers";
+
+// @ts-ignore
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Cypress {
+    interface Chainable<Subject> {
+      byTestId(testId: string): Chainable<HTMLElement>;
+
+      containsNotByTestId(container: string, testId: string): boolean;
+
+      login: typeof login;
+
+      restLogin: typeof restLogin;
+
+      restLogout: typeof restLogout;
+
+      restSetAnonymousMode: typeof restSetAnonymousMode;
+
+      setAnonymousMode: typeof setAnonymousMode;
+
+      restSetConfig: typeof restSetConfig;
+
+      restCreateRepo: typeof restCreateRepo;
+
+      restSetUserRepositoryRole: typeof restSetUserRepositoryRole;
+
+      restSetUserPermissions: typeof restSetUserPermissions;
+
+      restCreateUser: typeof restCreateUser;
+    }
+  }
+}
 
 const defaultScmManagerConfig = {
   proxyPassword: null,
@@ -11,13 +43,12 @@ const defaultScmManagerConfig = {
   disableGroupingGrid: false,
   dateFormat: "YYYY-MM-DD HH:mm:ss",
   anonymousMode: "OFF",
-  baseUrl: Cypress.env('SERVER_BASE_URL'),
+  baseUrl: Cypress.env("SERVER_BASE_URL"),
   forceBaseUrl: false,
   loginAttemptLimit: 100,
   proxyExcludes: [],
   skipFailedAuthenticators: false,
-  pluginUrl:
-    "https://plugin-center-api.scm-manager.org/api/v1/plugins/{version}?os={os}&arch={arch}&x=u",
+  pluginUrl: "https://plugin-center-api.scm-manager.org/api/v1/plugins/{version}?os={os}&arch={arch}&x=u",
   loginAttemptLimitTimeout: 300,
   enabledXsrfProtection: true,
   enabledUserConverter: false,
@@ -27,14 +58,14 @@ const defaultScmManagerConfig = {
   mailDomainName: "scm-manager.local"
 };
 
-const login = (username, password) => {
+const login = (username: string, password: string) => {
   cy.visit("/login");
   cy.byTestId("username-input").type(username);
   cy.byTestId("password-input").type(password);
   cy.byTestId("login-button").click();
 };
 
-const setAnonymousMode = anonymousMode => {
+const setAnonymousMode = (anonymousMode: "FULL" | "OFF" | "PROTOCOL_ONLY") => {
   cy.byTestId("primary-navigation-admin").click();
   cy.byTestId("admin-settings-link").click();
   cy.byTestId("anonymous-mode-select")
@@ -43,7 +74,7 @@ const setAnonymousMode = anonymousMode => {
   cy.byTestId("submit-button").click();
 };
 
-const restLogin = (username, password) => {
+const restLogin = (username: string, password: string) => {
   const loginUrl = `/api/v2/auth/access_token`;
 
   cy.request({
@@ -69,7 +100,7 @@ const restLogout = () => {
   );
 };
 
-const restSetAnonymousMode = anonymousMode => {
+const restSetAnonymousMode = (anonymousMode: "FULL" | "OFF" | "PROTOCOL_ONLY") => {
   return restSetConfig({ anonymousMode });
 };
 
@@ -87,10 +118,8 @@ const restSetConfig = (config = {}) => {
   );
 };
 
-const restSetUserPermissions = (username, permissions) => {
-  const url = `/api/v2/users/${encodeURIComponent(
-    username
-  )}/permissions`;
+const restSetUserPermissions = (username: string, permissions: any) => {
+  const url = `/api/v2/users/${encodeURIComponent(username)}/permissions`;
   cy.request(
     withAuth({
       method: "PUT",
@@ -105,10 +134,13 @@ const restSetUserPermissions = (username, permissions) => {
   );
 };
 
-const restSetUserRepositoryRole = (username, namespace, name, role) => {
-  const url = `/api/v2/repositories/${encodeURIComponent(
-    namespace
-  )}/${encodeURIComponent(name)}/permissions`;
+const restSetUserRepositoryRole = (
+  username: string,
+  namespace: string,
+  name: string,
+  role: "READ" | "WRITE" | "ADMIN"
+) => {
+  const url = `/api/v2/repositories/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}/permissions`;
   cy.request(
     withAuth({
       method: "POST",
@@ -126,7 +158,7 @@ const restSetUserRepositoryRole = (username, namespace, name, role) => {
   );
 };
 
-const restCreateUser = (username, password) => {
+const restCreateUser = (username: string, password: string) => {
   const url = `/api/v2/users`;
   cy.request(
     withAuth({
@@ -146,10 +178,8 @@ const restCreateUser = (username, password) => {
   );
 };
 
-const restCreateRepo = (type, namespace, name, initialize) => {
-  const reposUrl =
-      `/api/v2/repositories` +
-    (initialize ? "?initialize=true" : "");
+const restCreateRepo = (type: "git" | "svn" | "hg", namespace: string, name: string, initialize?: boolean) => {
+  const reposUrl = `/api/v2/repositories` + (initialize ? "?initialize=true" : "");
 
   return cy.request(
     withAuth({
@@ -178,6 +208,4 @@ Cypress.Commands.add("restCreateUser", restCreateUser);
 Cypress.Commands.add("login", login);
 Cypress.Commands.add("setAnonymousMode", setAnonymousMode);
 Cypress.Commands.add("byTestId", testId => cy.get(`[data-testid=${testId}]`));
-Cypress.Commands.add("containsNotByTestId", (container, testId) =>
-  cy.get(container).not(`[data-testid=${testId}]`)
-);
+Cypress.Commands.add("containsNotByTestId", (container, testId) => cy.get(container).not(`[data-testid=${testId}]`));

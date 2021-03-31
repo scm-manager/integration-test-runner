@@ -22,16 +22,16 @@
  * SOFTWARE.
  */
 
-Then("There is no primary navigation", () => {
-  cy.containsNotByTestId("div", "primary-navigation-login");
-  cy.containsNotByTestId("div", "primary-navigation-repositories");
+import { Given } from "cypress-cucumber-preprocessor/steps";
+
+Given("Anonymous Mode is disabled", () => {
+  cy.restSetAnonymousMode("OFF");
 });
 
-Then("There is a footer navigation", () => {
-  cy.byTestId("footer-user-profile");
+Given("Full Anonymous Mode is enabled", () => {
+  cy.restSetAnonymousMode("FULL");
 });
 
-Then("There is no option to change the password", () => {
-  cy.containsNotByTestId("ul", "user-settings-link");
-  cy.get("section").not("Change password");
+Given("Protocol Only Anonymous Mode is enabled", () => {
+  cy.restSetAnonymousMode("PROTOCOL_ONLY");
 });
