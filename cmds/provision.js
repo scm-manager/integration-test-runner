@@ -98,11 +98,14 @@ exports.handler = async argv => {
   testsToRun.push({ name: "scm-manager", version: coreVersion });
 
   logger.info("Collecting tests to run ...");
-  const rootDir = argv.directory
-    ? isAbsolute(argv.directory)
-      ? argv.directory
-      : join(CWD, argv.directory)
-    : CWD;
+  let rootDir = CWD;
+  if (argv.directory) {
+    if (isAbsolute(argv.directory)) {
+      rootDir = argv.directory;
+    } else {
+      rootDir = join(CWD, argv.directory);
+    }
+  }
   const cypressDir = join(rootDir, "cypress");
   const outRootDir = cypressDir;
   const featuresOutRootDir = join(outRootDir, "integration");
