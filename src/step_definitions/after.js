@@ -1,4 +1,4 @@
-after(function () {
-    cy.restLogout();
-    cy.visit("/");
-}
+after(function() {
+  cy.restLogout();
+  cy.visit("/");
+});

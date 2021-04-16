@@ -1,6 +1,12 @@
-const { join } = require("path");
+const { join, isAbsolute } = require("path");
 const axios = require("axios").default;
-const { copySync, ensureDir, pathExists, emptyDir } = require("fs-extra");
+const {
+  copySync,
+  ensureDir,
+  pathExists,
+  emptyDir,
+  pathExistsSync
+} = require("fs-extra");
 const { writeFileSync } = require("fs");
 const { EOL } = require("os");
 const {
@@ -8,6 +14,8 @@ const {
 } = require("../src/foreach-file-in-directory-recursive");
 const { copyDirContents } = require("../src/copy-dir-contents");
 const waitUntilServerIsAvailable = require("../src/waitUntilServerIsAvailable");
+
+const CWD = process.cwd();
 
 exports.command = "provision";
 exports.describe =
@@ -28,6 +36,12 @@ exports.builder = {
     alias: "p",
     type: "string",
     description: "scm-manager account password"
+  },
+  directory: {
+    alias: "d",
+    type: "string",
+    description:
+      "the relative path to the cypress directory (will be created if it doesnt exist)"
   }
 };
 exports.handler = async argv => {
@@ -84,13 +98,25 @@ exports.handler = async argv => {
   testsToRun.push({ name: "scm-manager", version: coreVersion });
 
   logger.info("Collecting tests to run ...");
-  const outRootDir = join(__dirname, "..", "cypress");
+  let rootDir = CWD;
+  if (argv.directory) {
+    if (isAbsolute(argv.directory)) {
+      rootDir = argv.directory;
+    } else {
+      rootDir = join(CWD, argv.directory);
+    }
+  }
+  const cypressDir = join(rootDir, "cypress");
+  const outRootDir = cypressDir;
   const featuresOutRootDir = join(outRootDir, "integration");
   const fixturesOutRootDir = join(outRootDir, "fixtures");
-  const supportOutRootDir = join(__dirname, "..", "cypress", "support");
+  const supportOutRootDir = join(cypressDir, "support");
   const stepsOutRootDir = join(supportOutRootDir, "step_definitions");
   const supportIndexFilePath = join(supportOutRootDir, "index.js");
-  let supportIndexJs = `import "../../commands";`;
+  let supportIndexJs = `import "${createRootFileImportPath(
+    "commands",
+    join("..", "..")
+  )}";`;
   const stepsIndexFilePath = join(stepsOutRootDir, "index.js");
   await emptyDir(outRootDir);
   await ensureDir(featuresOutRootDir);
@@ -98,7 +124,7 @@ exports.handler = async argv => {
   await ensureDir(stepsOutRootDir);
   await ensureDir(fixturesOutRootDir);
   for (const { name, version } of testsToRun) {
-    const rootInDir = join(__dirname, "..", "e2e-tests", name, version);
+    const rootInDir = join(rootDir, "e2e-tests", name, version);
 
     // Collect Features
     const featuresInDir = join(rootInDir, "features");
@@ -132,7 +158,10 @@ exports.handler = async argv => {
       supportIndexJs += `${EOL}import "./${name}";`;
     }
   }
-  writeFileSync(stepsIndexFilePath, `import "../../../steps";`);
+  writeFileSync(
+    stepsIndexFilePath,
+    `import "${createRootFileImportPath("steps", join("..", "..", ".."))}";`
+  );
   writeFileSync(supportIndexFilePath, supportIndexJs);
 
   // Check plugins file
@@ -142,7 +171,18 @@ exports.handler = async argv => {
     await ensureDir(pluginsRootPath);
     writeFileSync(
       pluginsFilePath,
-      "module.exports = require('../../plugins');"
+      `module.exports = require('${createRootFileImportPath(
+        "plugins",
+        join("..", "..")
+      )}');`
     );
   }
 };
+
+function createRootFileImportPath(filename, relativePathToRootDirFromTarget) {
+  const path = join(CWD, `${filename}.js`);
+  const pathExist = pathExistsSync(path);
+  return pathExist
+    ? join(relativePathToRootDirFromTarget, filename)
+    : `@scm-manager/integration-test-runner/${filename}`;
+}
