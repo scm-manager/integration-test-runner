@@ -25,3 +25,4 @@
 // This file is a template, please update the contents with step definitions for your plugin
 // It is mandatory that you use this specific file, because otherwise the integration-test-runner
 // might cause overlaps when copying all the different plugin tests together.
+// If there are no steps specific to this plugin, you can leave this file blank.

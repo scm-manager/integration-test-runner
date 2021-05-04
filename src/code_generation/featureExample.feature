@@ -22,6 +22,7 @@
 # SOFTWARE.
 #
 
+# This is an automatically generated example, please remove or replace as you see fit
 Feature: Example
 
   Scenario: Authenticated users have a footer navigation
