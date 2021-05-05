@@ -1,19 +1,22 @@
-const WebpackLogPlugin = require("./webpack-log-plugin");
+// use require.resolve to get the actual path of the loaders,
+// because webpack may running in a subfolder of a plugin
+
+const babelLoader = require.resolve("babel-loader");
+const featureLoader = require.resolve("cypress-cucumber-preprocessor/loader");
+const featuresLoader = require.resolve("cypress-cucumber-preprocessor/lib/featuresLoader");
 
 module.exports = {
   resolve: {
     extensions: [".ts", ".js"]
   },
   node: { fs: "empty", child_process: "empty", readline: "empty" },
-  plugins: [new WebpackLogPlugin()],
   module: {
     rules: [
       {
-        test: /\.(ts|js)$/,
-        exclude: [/node_modules/],
+        test: /\.ts$/,
         use: [
           {
-            loader: "babel-loader",
+            loader: babelLoader,
             options: {
               presets: ["@scm-manager/babel-preset"]
             }
@@ -24,7 +27,7 @@ module.exports = {
         test: /\.feature$/,
         use: [
           {
-            loader: "cypress-cucumber-preprocessor/loader"
+            loader: featureLoader
           }
         ]
       },
@@ -32,7 +35,7 @@ module.exports = {
         test: /\.features$/,
         use: [
           {
-            loader: "cypress-cucumber-preprocessor/lib/featuresLoader"
+            loader: featuresLoader
           }
         ]
       }
