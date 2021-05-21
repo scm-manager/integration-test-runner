@@ -23,7 +23,7 @@ npm install --save-dev @scm-manager/integration-test-runner
 Initialize a plugin for the development of behaviour-driven e2e tests:
 
 ```bash
-integration-test-runner init
+node_modules/.bin/integration-test-runner init
 ```
 
 # Usage
